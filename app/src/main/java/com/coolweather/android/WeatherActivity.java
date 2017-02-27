@@ -64,6 +64,8 @@ public class WeatherActivity extends AppCompatActivity {
     public DrawerLayout drawerLayout;
 
     private Button navButton;
+
+    private String mWeatherId;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,7 +73,7 @@ public class WeatherActivity extends AppCompatActivity {
 
         if (Build.VERSION.SDK_INT >= 21){
             View decorView = getWindow().getDecorView();
-            decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+            decorView.setSystemUiVisibility(View.INVISIBLE);
             getWindow().setStatusBarColor(Color.TRANSPARENT);
         }
         setContentView(R.layout.activity_weather);
@@ -93,15 +95,16 @@ public class WeatherActivity extends AppCompatActivity {
         navButton = (Button)findViewById(R.id.nav_button);
         SharedPreferences pres = PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString = pres.getString("weather",null);
-        final String weatherId;
+//        final String weatherId;
         if (weatherString != null){
             Weather weather = Utility.handleWeatherResponce(weatherString);
-            weatherId = weather.basic.weatherId;
+            Log.d("weatherString!=null",(weather != null)+"  ");
+            mWeatherId = weather.basic.weatherId;
             showWeatherInfo(weather);
         }else{
-            weatherId = getIntent().getStringExtra("weather_id");
+            mWeatherId = getIntent().getStringExtra("weather_id");
             weatherLayout.setVisibility(View.INVISIBLE);
-            requestWeather(weatherId);
+            requestWeather(mWeatherId);
         }
         String bingPic = pres.getString("bing_pic",null);
         if (bingPic != null){
@@ -112,7 +115,7 @@ public class WeatherActivity extends AppCompatActivity {
         swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                requestWeather(weatherId);
+                requestWeather(mWeatherId);
             }
         });
         navButton.setOnClickListener(new View.OnClickListener() {
@@ -162,6 +165,7 @@ public class WeatherActivity extends AppCompatActivity {
                             SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit();
                             editor.putString("weather",responseText);
                             editor.apply();
+                            mWeatherId = weather.basic.weatherId;
                             showWeatherInfo(weather);
                         }else {
                             Toast.makeText(WeatherActivity.this,"获取天气信息失败",Toast.LENGTH_LONG).show();
@@ -208,7 +212,6 @@ public class WeatherActivity extends AppCompatActivity {
             maxText.setText(forecast.temperature.max);
             minText.setText(forecast.temperature.min);
             forecastLyout.addView(view);
-            Log.d("showInfo","addView");
         }
         if (weather.aqi != null){
             aqiText.setText(weather.aqi.city.aqi);
