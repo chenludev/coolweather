@@ -2,6 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/colorPrimary">
 
     <ImageView
@@ -42,13 +43,16 @@
             </ScrollView>
         </android.support.v4.widget.SwipeRefreshLayout>
 
+        <android.support.design.widget.NavigationView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/nav_view"
+            app:headerLayout="@layout/nav_header"
+            app:menu="@menu/nav_menu"
+            android:layout_gravity = "start"/>
 
-             <fragment
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:id="@+id/choose_area_fragment"
-                android:name="com.coolweather.android.ChooseAreaFragment"
-                android:layout_gravity="start" />
+
+
     </android.support.v4.widget.DrawerLayout>
 
 </FrameLayout>

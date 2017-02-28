@@ -6,12 +6,14 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -32,7 +34,6 @@ import java.io.IOException;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
-
 public class WeatherActivity extends AppCompatActivity {
 
     private ScrollView weatherLayout;
@@ -66,6 +67,10 @@ public class WeatherActivity extends AppCompatActivity {
     private Button navButton;
 
     private String mWeatherId;
+
+    private NavigationView navigationView;
+
+    private ImageView headerImage;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,7 +78,8 @@ public class WeatherActivity extends AppCompatActivity {
 
         if (Build.VERSION.SDK_INT >= 21){
             View decorView = getWindow().getDecorView();
-            decorView.setSystemUiVisibility(View.INVISIBLE);
+            decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
             getWindow().setStatusBarColor(Color.TRANSPARENT);
         }
         setContentView(R.layout.activity_weather);
@@ -93,12 +99,13 @@ public class WeatherActivity extends AppCompatActivity {
         bingPicImg = (ImageView)findViewById(R.id.bing_pic_img);
         drawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
         navButton = (Button)findViewById(R.id.nav_button);
+        navigationView = (NavigationView)findViewById(R.id.nav_view);
+        headerImage = (ImageView)navigationView.findViewById(R.id.nav_header_image);
         SharedPreferences pres = PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString = pres.getString("weather",null);
 //        final String weatherId;
-        if (weatherString != null){
+        if (weatherString != null && getIntent().getStringExtra("weather_id") == null){
             Weather weather = Utility.handleWeatherResponce(weatherString);
-            Log.d("weatherString!=null",(weather != null)+"  ");
             mWeatherId = weather.basic.weatherId;
             showWeatherInfo(weather);
         }else{
@@ -124,6 +131,22 @@ public class WeatherActivity extends AppCompatActivity {
                 drawerLayout.openDrawer(GravityCompat.START);
             }
         });
+
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()){
+                    case R.id.switch_city:
+                        Intent intent = new Intent(WeatherActivity.this,MainActivity.class);
+                        intent.putExtra("request","switchCity");
+                        startActivity(intent);
+                        drawerLayout.closeDrawers();
+                        return true;
+                }
+                return true;
+            }
+        });
+        Glide.with(this).load(R.drawable.ic_header).into(headerImage);
     }
 
     private void loadBingPic() {
@@ -139,6 +162,7 @@ public class WeatherActivity extends AppCompatActivity {
                 final String responseText = response.body().string();
                 SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit();
                 editor.putString("bing_pic",responseText);
+                editor.apply();
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
